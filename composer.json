@@ -1,0 +1,18 @@
+{
+    "name": "socialiteproviders/thebizark",
+    "description": "Thebizark OAuth2 Provider for Laravel Socialite",
+    "license": "MIT",
+    "authors": [{
+        "name": "fan.zhenxing",
+        "email": "fan.zhenxing@thebizark.com"
+    }],
+    "require": {
+        "php": ">=5.5.0",
+        "socialiteproviders/manager": "~1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "SocialiteProviders\\Thebizark\\": "src/"
+        }
+    }
+}
