@@ -1,5 +1,5 @@
 {
-    "name": "socialiteproviders/thebizark",
+    "name": "nickfan/socialite-thebizark",
     "description": "Thebizark OAuth2 Provider for Laravel Socialite",
     "license": "MIT",
     "authors": [{
