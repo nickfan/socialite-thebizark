@@ -82,11 +82,22 @@ class Provider extends AbstractProvider implements ProviderInterface
     protected function getUserByToken($token)
     {
         $response = $this->getHttpClient()->get($this->getOption('endpoint', 'http://dbp.thebizark.com').$this->getOption('postfixResourceOwnerDetails', '/oapi/v1/resource'), [
+            //'query' => ['access_token' => $token],
             'headers' => [
                 'Authorization' => 'Bearer '.$token,
             ],
         ]);
 
+        return json_decode($response->getBody(), true);
+    }
+
+    public function getUserOrganizations($token){
+        $response = $this->getHttpClient()->get($this->getOption('endpoint', 'http://dbp.thebizark.com').'/oapi/v1/account/organizations', [
+            //'query' => ['access_token' => $token],
+            'headers' => [
+                'Authorization' => 'Bearer '.$token,
+            ],
+        ]);
         return json_decode($response->getBody(), true);
     }
 
