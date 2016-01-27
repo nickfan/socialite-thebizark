@@ -2,6 +2,7 @@
 namespace SocialiteProviders\Thebizark;
 
 use Illuminate\Http\Request;
+use GuzzleHttp\ClientInterface;
 use Laravel\Socialite\Two\AbstractProvider;
 use Laravel\Socialite\Two\InvalidStateException;
 use Laravel\Socialite\Two\ProviderInterface;
@@ -10,6 +11,8 @@ use Laravel\Socialite\Two\User;
 class Provider extends AbstractProvider implements ProviderInterface
 {
     protected $stateless = true;
+
+    protected $lastAccessTokenResponse = null;
     /**
      * The options.
      *
@@ -75,6 +78,64 @@ class Provider extends AbstractProvider implements ProviderInterface
     protected function getTokenUrl()
     {
         return $this->getOption('endpoint', 'http://dbp.thebizark.com').$this->getOption('postfixAccessToken', '/oauth/access_token');
+    }
+
+    protected function getLastAccessTokenResponse(){
+        return $this->lastAccessTokenResponse;
+    }
+    protected function setLastAccessTokenResponse($response){
+        return $this->lastAccessTokenResponse = $response;
+    }
+    protected function getLastAccessTokenBody(){
+        return !empty($this->lastAccessTokenResponse)?json_decode($this->lastAccessTokenResponse,true):null;
+    }
+
+    /**
+     * Get the access token Body
+     *
+     * @param  string  $code
+     * @return string
+     */
+    public function getAccessTokenBodyByCode($code)
+    {
+        $postKey = (version_compare(ClientInterface::VERSION, '6') === 1) ? 'form_params' : 'body';
+        $response = $this->getHttpClient()->post($this->getTokenUrl(), [
+            'headers' => ['Accept' => 'application/json'],
+            $postKey => $this->getTokenFields($code),
+        ]);
+        return json_decode($this->setLastAccessTokenResponse($response->getBody()), true);
+    }
+
+    /**
+     * Get the access token Body
+     *
+     * @param  string  $code
+     * @return string
+     */
+    public function getAccessTokenBody()
+    {
+        $lastAccessTokenBody = $this->getLastAccessTokenBody();
+        if(empty($lastAccessTokenBody)){
+            $lastAccessTokenBody = $this->getAccessTokenBodyByCode($this->getCode());
+        }
+        return $lastAccessTokenBody;
+    }
+
+    /**
+     * Get the access token for the given code.
+     *
+     * @param  string  $code
+     * @return string
+     */
+    public function getAccessToken($code)
+    {
+        $postKey = (version_compare(ClientInterface::VERSION, '6') === 1) ? 'form_params' : 'body';
+
+        $response = $this->getHttpClient()->post($this->getTokenUrl(), [
+            'headers' => ['Accept' => 'application/json'],
+            $postKey => $this->getTokenFields($code),
+        ]);
+        return $this->parseAccessToken($this->setLastAccessTokenResponse($response->getBody()));
     }
 
     /**
