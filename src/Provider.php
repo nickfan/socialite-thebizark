@@ -91,7 +91,7 @@ class Provider extends AbstractProvider implements ProviderInterface
     }
 
     /**
-     * Get the access token Body
+     * Get the access token Body By Code
      *
      * @param  string  $code
      * @return string
@@ -102,6 +102,22 @@ class Provider extends AbstractProvider implements ProviderInterface
         $response = $this->getHttpClient()->post($this->getTokenUrl(), [
             'headers' => ['Accept' => 'application/json'],
             $postKey => $this->getTokenFields($code),
+        ]);
+        return json_decode($this->setLastAccessTokenResponse($response->getBody()), true);
+    }
+
+    /**
+     * Get the access token Body By Refresh Token
+     *
+     * @param  string  $code
+     * @return string
+     */
+    public function getAccessTokenBodyByRefreshToken($refresh_token)
+    {
+        $postKey = (version_compare(ClientInterface::VERSION, '6') === 1) ? 'form_params' : 'body';
+        $response = $this->getHttpClient()->post($this->getTokenUrl(), [
+            'headers' => ['Accept' => 'application/json'],
+            $postKey => $this->getTokenFieldsByRefreshToken($refresh_token),
         ]);
         return json_decode($this->setLastAccessTokenResponse($response->getBody()), true);
     }
@@ -135,7 +151,42 @@ class Provider extends AbstractProvider implements ProviderInterface
             'headers' => ['Accept' => 'application/json'],
             $postKey => $this->getTokenFields($code),
         ]);
+
         return $this->parseAccessToken($this->setLastAccessTokenResponse($response->getBody()));
+    }
+
+
+    /**
+     * Get the access token for the given code.
+     *
+     * @param  string  $code
+     * @return string
+     */
+    public function getAccessTokenByRefreshToken($refresh_token)
+    {
+        $postKey = (version_compare(ClientInterface::VERSION, '6') === 1) ? 'form_params' : 'body';
+
+        $response = $this->getHttpClient()->post($this->getTokenUrl(), [
+            'headers' => ['Accept' => 'application/json'],
+            $postKey => $this->getTokenFieldsByRefreshToken($refresh_token),
+        ]);
+
+        return $this->parseAccessToken($this->setLastAccessTokenResponse($response->getBody()));
+    }
+
+    /**
+     * Get the POST fields for the token request.
+     *
+     * @param  string  $code
+     * @return array
+     */
+    protected function getTokenFieldsByRefreshToken($refresh_token)
+    {
+        return [
+            'client_id' => $this->clientId, 'client_secret' => $this->clientSecret,
+            'grant_type' => 'refresh_token',
+            'refresh_token' => $refresh_token, 'redirect_uri' => $this->redirectUrl,
+        ];
     }
 
     /**
